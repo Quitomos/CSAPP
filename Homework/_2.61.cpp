@@ -22,10 +22,11 @@ int fund(int x) {
 }
 
 int main() {
-    cout << "answer: 1 0" << endl;
-    cout << funa(-1) << " " << funa(33) <<endl;
-    cout << funb(0) << " " << funb(33) <<endl;
-    cout << func(767) << " " << func(149) << endl;
-    cout << fund(234) << " " << fund(-5847) << endl;
+    int x = 0;
+    cout << "End with input 1" << endl;
+    while (x != 1) {
+        cin >> x;
+        cout << funa(x) << " " << funb(x) << " " << func(x) << " " << fund(x) << endl; 
+    }
     return 0;
 }
