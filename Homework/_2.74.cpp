@@ -6,7 +6,7 @@ int tsub_ok(int x, int y) {
     int w = sizeof(int) << 3;
     int ans = x - y;
     int sx = x >> (w - 1), sy = y >> (w - 1), sa = ans >> (w - 1);
-    return (!sx && sy && sa) || (sx && !sy && !sa);
+    return !((!sx && sy && sa) || (sx && !sy && !sa));
 }
 
 int main() {
