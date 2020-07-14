@@ -12,7 +12,7 @@ int main() {
     cout << "End with input 0" << endl;
     while (x != 0) {
         cin >> x;
-        cout << any_odd_one(x);
+        cout << any_odd_one(x) <<endl;
     }
     return 0;
 }

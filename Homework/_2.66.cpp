@@ -17,7 +17,7 @@ int main() {
     cout << "End with input 0" << endl;
     while ( x != 0) {
         cin >> x;
-        cout << leftmost_one(x);
+        cout << leftmost_one(x) << endl;
     }
     return 0;
 }

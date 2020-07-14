@@ -17,7 +17,7 @@ int main() {
     cout << "End with input 0" << endl;
     while ( x != 0) {
         cin >> x;
-        cout << odd_ones(x);
+        cout << odd_ones(x) << endl;
     }
     return 0;
 }
