@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * <Vane>
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -143,7 +143,7 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  return (~(x & y) &  y) | (x & ~y);
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -152,9 +152,7 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-
-  return 2;
-
+  return 1 << 31;
 }
 //2
 /*
@@ -165,7 +163,7 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  return !(x + x + 2) & !(x >> 31);
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -176,7 +174,12 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int mask = 0xAA;
+  mask = (mask << 8) | mask;
+  mask = (mask << 16) | mask;
+  int y = x & mask;
+  mask = ~mask + 1;
+  return !(mask + y);
 }
 /* 
  * negate - return -x 
@@ -186,7 +189,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 //3
 /* 
@@ -199,7 +202,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int sigx = x >> 31;
+  int neg1 = ~0x30 + 1;
+  int sig1 = ((sigx + neg1) >> 31) & 1;
+  int neg2 = ~0x3A + 1;
+  int sig2 = ((sigx + neg2) >> 31) & 1;
+  return ~sigx & ~sig1 & sig2;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -209,7 +217,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  int select = !!x;
+  int masky = ~select + 1;
+  int maskz = select - 1;
+  return y & masky + z & maskz;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -219,7 +230,13 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int negy = ~y + 1;
+  int sum = x + negy;
+  int equal = !!sum;
+  int sigx = (x >> 31) & 1;
+  int sigy = (x >> 31) & 1;
+  int sigsum = (sum >> 31) & 1;
+  return equal | (sigx & ~sigy) | ((sigx | ~sigy) & sigsum);
 }
 //4
 /* 
@@ -231,7 +248,12 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  x = x | (x >> 16);
+  x = x | (x >> 8);
+  x = x | (x >> 4);
+  x = x | (x >> 2);
+  x = x | (x >> 1);
+  return (x ^ 1) & 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -246,7 +268,18 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  x = x ^ (x >> 31);
+  int b16 = !!(x >> 16) << 4;
+  x = x >> b16;
+  int b8 = !!(x >> 8) << 3;
+  x = x >> b8;
+  int b4 = !!(x >> 4) << 2;
+  x = x >> b4;
+  int b2 = !!(x >> 2) << 1;
+  x = x >> b2;
+  int b1 = !!(x >> 1);
+  x = x >> b1;
+  return b16 + b8 + b4 + b2 + b1 + x + 1;
 }
 //float
 /* 
@@ -261,7 +294,24 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+    unsigned sign = uf >> 31;
+    unsigned exp = uf >> 23 & 0xff;
+    unsigned frac = uf & ((1 << 23) - 1);
+    if (exp == 0xff) return uf; //NAN or 00;
+    
+    if (exp == 0 && (frac >> 22) == 1) {
+        exp = exp + 1;
+        frac = frac << 1;
+    }
+    else if (exp == 0) frac = frac << 1;
+    else if (exp == 0xff - 1) {
+        exp = 0xff;
+        frac = 0;
+    }
+    else {
+        exp = exp + 1;
+    }
+    return sign << 31 | exp << 23 | frac;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -276,7 +326,16 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+   unsigned sign = uf >> 31;
+    unsigned exp = uf >> 23 & 0xff;
+    unsigned frac = uf & ((1 << 23) - 1);
+
+    if (exp < 0x7f) return 0;
+    if (exp >= 31 + 0x7f) return 1 << 31;
+    unsigned E = exp - 0x7f;
+    unsigned M = frac | (1 << 23);
+    if (M > 23) return M << (E - 23) | (sign << 31);
+    return M >> (23 - E) | (sign << 31);
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -292,5 +351,17 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+    if (x < -149) return 0;
+    if (x > 127) return 0x7f800000;
+    unsigned exp, frac;
+    unsigned bias = 127;
+    if (x < -126) {
+      exp = 0;
+      frac = 1 << (149 + x);
+    }
+    else {
+      frac = 0;
+      exp = x + bias;
+    }
+    return (exp << 23) | frac;
 }
