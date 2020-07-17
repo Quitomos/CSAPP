@@ -143,7 +143,7 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return ~((~(x & y) &  y) & ~(x & ~y));
+  return ~(~(~(x & y) &  y) & ~(x & ~y));
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -203,12 +203,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  int sigx = x >> 31;
+  int sigx = (x >> 31) & 1;
   int neg1 = ~0x30 + 1;
-  int sig1 = ((sigx + neg1) >> 31) & 1;
+  int sig1 = ((x + neg1) >> 31) & 1;
   int neg2 = ~0x3A + 1;
-  int sig2 = ((sigx + neg2) >> 31) & 1;
-  return ~sigx & ~sig1 & sig2;
+  int sig2 = ((x + neg2) >> 31) & 1;
+  return ~(sigx | sig1) & sig2;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -221,7 +221,7 @@ int conditional(int x, int y, int z) {
   int select = !!x;
   int masky = ~select + 1;
   int maskz = select + (~1 + 1);
-  return y & masky + z & maskz;
+  return (y & masky) | (z & maskz);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -233,9 +233,9 @@ int conditional(int x, int y, int z) {
 int isLessOrEqual(int x, int y) {
   int negy = ~y + 1;
   int sum = x + negy;
-  int equal = !!sum;
+  int equal = !sum;
   int sigx = (x >> 31) & 1;
-  int sigy = (x >> 31) & 1;
+  int sigy = (y >> 31) & 1;
   int sigsum = (sum >> 31) & 1;
   return equal | (sigx & ~sigy) | ((sigx | ~sigy) & sigsum);
 }
@@ -332,13 +332,16 @@ int floatFloat2Int(unsigned uf) {
    unsigned sign = uf >> 31;
    unsigned exp = uf >> 23 & 0xff;
    unsigned frac = uf & ((1 << 23) - 1);
+   unsigned ans;
 
     if (exp < 0x7f) return 0;
     if (exp >= 31 + 0x7f) return 1 << 31;
     E = exp - 0x7f;
     M = frac | (1 << 23);
-    if (M > 23) return M << (E - 23) | (sign << 31);
-    return M >> (23 - E) | (sign << 31);
+    if (E > 23) ans = M << (E - 23);
+    else ans = M >> (23 - E);
+    if (sign) ans = -ans;
+    return ans;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
