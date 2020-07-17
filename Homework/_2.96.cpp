@@ -9,17 +9,21 @@ float u2f(unsigned x) {
   return *(float*) &x;
 }
 
-int float_f2i(float_bits f) {
-    unsigned sign = f >> 31;
-    unsigned exp = f >> 23 & 0xff;
-    unsigned frac = f & 0x7fffff;
+int float_f2i(float_bits uf) {
+   unsigned E, M;
+   unsigned sign = uf >> 31;
+   unsigned exp = uf >> 23 & 0xff;
+   unsigned frac = uf & ((1 << 23) - 1);
+   unsigned ans;
 
     if (exp < 0x7f) return 0;
-    if (exp >= 31 + 0x7f) return 0x80000000;
-    unsigned E = exp - 0x7f;
-    unsigned M = frac | 0x800000;
-    if (M > 23) return M << (E - 23) | (sign << 31);
-    return M >> (23 - E) | (sign << 31);
+    if (exp >= 31 + 0x7f) return 1 << 31;
+    E = exp - 0x7f;
+    M = frac | (1 << 23);
+    if (E > 23) ans = M << (E - 23);
+    else ans = M >> (23 - E);
+    if (sign) ans = -ans;
+    return ans;
 }
 
 int main() {
