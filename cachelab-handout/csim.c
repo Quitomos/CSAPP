@@ -8,11 +8,11 @@
 typedef unsigned us;
 
 us hits, misses, evictions;
-bool verbose;
+int verbose;
 
-enum _STATE {
-    hit, miss, eviction;
-};
+typedef enum{
+    hit, miss, eviction
+} _STATE;
 
 struct _CACHE {
     us S, E, B;
@@ -25,7 +25,7 @@ void init(us s, us E, us b) {
     hits = 0;
     misses =0;
     evictions = 0;
-    verbose = false;
+    verbose = 0;
     S = 1 << s;
     B = 1 << b;
     cache.S = S;
@@ -46,7 +46,7 @@ void init(us s, us E, us b) {
 }
 
 void visit(us add) {
-    us S, t, bias, i, insert, mint, mintidx, curt;
+    us S, t, i, insert, mint, mintidx, curt;
     us maxt = cache.E;
     _STATE state;
 
@@ -82,9 +82,9 @@ void visit(us add) {
     }
     cache.c[S][insert][2] = maxt;
     switch (state) {
+        case eviction:  ++evictions;
         case miss:  ++misses; break;
         case hit:   ++hits; break;
-        case eviction:  ++evictions; break;
         default:    break;
     }
     if (verbose) {
@@ -123,19 +123,20 @@ void freeCache() {
 int main(int argc, char* const argv[])
 {
     char opt, type;
-    int add, size;
+    long int add;
+    int size;
     FILE* fp = NULL;
     int s = -1, E = -1, b = -1;
-    bool error = false, help = false;
+    int error = 0, help = 0;
     while ((opt = getopt(argc, argv, "hvs:E:b:t:")) != -1) {
         switch(opt) {
-            case 'h':   printHelp(); help = true; break;
-            case 'v':   verbose = true; break;
+            case 'h':   printHelp(); help = 1; break;
+            case 'v':   verbose = 1; break;
             case 's':   s = atoi(optarg); break;
             case 'E':   E = atoi(optarg); break;
             case 'b':   b = atoi(optarg); break;
             case 't':   fp = fopen(optarg, "r"); break;
-            default:    error = true;
+            default:    error = 1;
         }
     }
     if (s <= 0 || E <= 0 || b <= 0 || fp == NULL || error) {
@@ -143,9 +144,9 @@ int main(int argc, char* const argv[])
         return 0;
     }
     init(s, E, b);
-    while (fscanf(fp, " %c %llx,%d", &type, &add, &size) > 0) {
+    while (fscanf(fp, " %c %lx,%d", &type, &add, &size) > 0) {
         if (type == 'I') continue;
-        if (verbose) printf("%c %llx,%d", type, add, size);
+        if (verbose) printf("%c %lx,%d", type, add, size);
         if (type == 'M') visit(add);
         visit(add);
         if (verbose) printf("\n");
