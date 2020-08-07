@@ -25,7 +25,6 @@ void init(us s, us E, us b) {
     hits = 0;
     misses =0;
     evictions = 0;
-    verbose = 0;
     S = 1 << s;
     B = 1 << b;
     cache.S = S;
@@ -51,7 +50,7 @@ void visit(us add) {
     _STATE state;
 
     insert = -1;
-    mint = maxt;
+    mint = maxt + 1;
     S = (add >> cache.b) & ((1 << cache.s) - 1);
     t = add >> (cache.b + cache.s);
     for (i = 0; i < maxt; ++i) {
@@ -65,7 +64,7 @@ void visit(us add) {
             state = hit;
             break;
         }
-        else if (mint > cache.c[S][i][2]) {
+        else if (mint >= cache.c[S][i][2]) {
             mint = cache.c[S][i][2];
             mintidx = i;
         }
@@ -87,7 +86,7 @@ void visit(us add) {
         case hit:   ++hits; break;
         default:    break;
     }
-    if (verbose) {
+    if (verbose == 1) {
         switch (state) {
             case miss:  printf(" miss"); break;
             case hit:   printf(" hit"); break;
@@ -128,6 +127,7 @@ int main(int argc, char* const argv[])
     FILE* fp = NULL;
     int s = -1, E = -1, b = -1;
     int error = 0, help = 0;
+    verbose = 0;
     while ((opt = getopt(argc, argv, "hvs:E:b:t:")) != -1) {
         switch(opt) {
             case 'h':   printHelp(); help = 1; break;
