@@ -12,18 +12,7 @@
 
 int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 
-/* 
- * transpose_submit - This is the solution transpose function that you
- *     will be graded on for Part B of the assignment. Do not change
- *     the description string "Transpose submission", as the driver
- *     searches for that string to identify the transpose function to
- *     be graded. 
- */
-char transpose_submit_desc[] = "Transpose submission";
-void transpose_submit(int M, int N, int A[N][M], int B[M][N])
-{
-    b1(M, N, A, B);
-}
+
 
 /* 
  * You can define additional transpose functions below. We've defined
@@ -80,6 +69,19 @@ void b1(int M, int N, int A[N][M], int B[M][N]) {
     if (is_transpose(M, N, A, B) == 0) printf("WRONG ANSWER!");
 }
 
+/* 
+ * transpose_submit - This is the solution transpose function that you
+ *     will be graded on for Part B of the assignment. Do not change
+ *     the description string "Transpose submission", as the driver
+ *     searches for that string to identify the transpose function to
+ *     be graded. 
+ */
+
+ char transpose_submit_desc[] = "Transpose submission";
+ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
+ {
+     b1(M, N, A, B);
+ }
 /*
  * registerFunctions - This function registers your transpose
  *     functions with the driver.  At runtime, the driver will
