@@ -22,6 +22,7 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
+    b1(M, N, A, B);
 }
 
 /* 
@@ -46,6 +47,39 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 
 }
 
+char b1_desc[] = "bsize = 1";
+void b1(int M, int N, int A[N][M], int B[M][N]) {
+    int bsize, i, j, ii, jj;
+    bsize = 1;
+
+    for (ii = 0; ii + bsize < N; ii += bsize) {
+        for (jj = 0; jj + bsize < M; jj += bsize) {
+            for (i = ii; i < ii + bsize; ++i) {
+                for (j = jj; j < jj + bsize; ++j) {
+                    B[j][i] = A[i][j];
+                }
+            }
+        }
+        for (i = ii; i < ii + bsize; ++i) {
+            for (j = jj; j < M; ++j) {
+                B[j][i] = A[i][j];
+            }
+        }
+    }
+    for (jj = 0; jj + bsize < M; jj+= bsize) {
+        for (i = ii; i < N; ++i) {
+            for (j = jj; j < jj + bsize; ++j) 
+            B[j][i] = A[i][j];
+        }
+    }
+    for (i = ii; i < N; ++i) {
+        for (j = jj; j < M; ++j) {
+            B[j][i] = A[i][j];
+        }
+    }
+    if (is_transpose(M, N, A, B) == 0) printf("WRONG ANSWER!");
+}
+
 /*
  * registerFunctions - This function registers your transpose
  *     functions with the driver.  At runtime, the driver will
@@ -60,6 +94,7 @@ void registerFunctions()
 
     /* Register any additional transpose functions */
     registerTransFunction(trans, trans_desc); 
+    registerTransFunction(b1, b1_desc); 
 
 }
 
