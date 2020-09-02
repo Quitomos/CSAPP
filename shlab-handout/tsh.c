@@ -179,16 +179,14 @@ void eval(char *cmdline)
     state = parseline(cmdline, argv)? BG: FG;
     if (argv[0] == NULL) return;
 
-    if (builtin_cmd(argv)) {
-        execve(argv[0], argv, environ);
-        exit(0);
-    }
+    if (builtin_cmd(argv)) return;
+
     sigprocmask(SIG_BLOCK, &mask_child, &mask_prev);
     if ((pid = fork()) == 0) {
         sigprocmask(SIG_SETMASK, &mask_prev, NULL);
-        sigpgid(0, 0);
+        setpgid(0, 0);
         execve(argv[0], argv, environ);
-        printf ("%s: Commmand not found\n", argv[0]);
+        printf ("%s: Command not found\n", argv[0]);
         exit(0);
     }
     addjob(jobs, pid, state, cmdline);
@@ -300,13 +298,12 @@ void do_bgfg(char **argv)
     pid_t pid = -1;
     int jid = -1;
     sigset_t mask_all, mask_prev;
-    job_t cur_job;
+    struct job_t* cur_job;
 
     sigfillset(&mask_all);
 
 
-    if (argv[2] != NULL && argv[2] != "&") return;
-    if (argv[1] == NULL) {
+    if ((argv[1] == NULL)) {
         printf("%s: command requires PID or %%jobid argument\n", cmd);
         fflush(stdout);
         return;
@@ -319,16 +316,19 @@ void do_bgfg(char **argv)
         }
         jid = atoi(&argv[1][1]);
     }
-    else if (atoi(argv[1]) == 0) {
-        printf("%s: argument must be a PID or %%jobid\n", cmd);
-        fflush(stdout);
-        return;
-        pid = atoi(argv[1]);
+    else {
+		if (atoi(argv[1]) == 0) {
+        		printf("%s: argument must be a PID or %%jobid\n", cmd);
+        		fflush(stdout);
+        		return;
+		}
+        	pid = atoi(argv[1]);
     }
-    
+
+    if (argv[2] && strcmp(argv[2], "&")) return;
     sigprocmask(SIG_BLOCK, &mask_all, &mask_prev);
-    if (jid = -1) jid = pid2jid(pid);
-    cur_job = getjobjid(jid);
+    if (jid == -1) jid = pid2jid(pid);
+    cur_job = getjobjid(jobs, jid);
     if (cur_job == NULL) {
         if (pid == -1) {
             printf ("%s: No such job\n", argv[1]);
@@ -343,6 +343,7 @@ void do_bgfg(char **argv)
     switch(cur_job->state) {
         case ST:
         case BG:
+	case FG:
             kill(-(cur_job->pid), SIGCONT);
             if (strcmp(cmd, "fg") == 0) {
                 cur_job->state = FG;
@@ -350,7 +351,7 @@ void do_bgfg(char **argv)
             }
             else {
                 cur_job->state = BG;
-                printf("[%d] (%d) %s\n", cur_job->jid, cur_job->pid, cur_job->cmd);
+                printf("[%d] (%d) %s", cur_job->jid, cur_job->pid, cur_job->cmdline);
             }
             break;
         default:
@@ -394,7 +395,7 @@ void sigchld_handler(int sig)
     pid_t pid;
     sigset_t mask_all, mask_prev;
     int status;
-    job_t job;
+    struct job_t* job;
 
     sigfillset(&mask_all);
 
