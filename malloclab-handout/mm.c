@@ -24,11 +24,11 @@
  ********************************************************/
 team_t team = {
     /* Team name */
-    "ateam",
+    "Harimu",
     /* First member's full name */
-    "Harry Bovik",
+    "Quitomos",
     /* First member's email address */
-    "bovik@cs.cmu.edu",
+    "quitomos@buaa.edu.cn",
     /* Second member's full name (leave blank if none) */
     "",
     /* Second member's email address (leave blank if none) */
@@ -44,11 +44,39 @@ team_t team = {
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
+//from page 599
+#define WSIZE 4     //word and header/footer size
+#define DSIZE 8     //double word size
+size_t CHUNKSIZE = mem_pagesize();  //extend heap by one page
+
+#define MAX(x, y) ((x) > (y)? (x) : (y));
+
+#define PACK(size, alloc) ((size) | alloc)  //pack a size and allocated bit into a word
+
+#define GET(p)  (*(unsigned int*)(p))   //read a word at address p
+#define PUT(p, val) (*(unsigned int*)(p) = (val))   //write a word at address p
+
+#define GET_SIZE(p) (GET(p) & ~0x7) //read the size and allocated fields from address p
+#define GET_ALLOC(p) (GET(p) & 0x1) //read allocated fields from address p
+
+#define HDRP(bp) ((char*)(bp) - WSIZE)  //compute address of the header of a block ptr
+#define FTRP(bp) ((char*)(bp) + GET_SIZE(HDRP(bp)) - DSIZE)  //compute address of the footer of a block ptr
+
+#define NEXT_BLKP(bp) ((char*)(bp) + GET_SIZE(((char*)(bp) - WSIZE)))   //dext block ptr
+#define PREV_BLKP(bp) ((char*)(bp) - GET_SIZE(((char*)(bp) - DSIZE)))   //previous block ptr
+
+
+static char* begin;
+static char* end;
+
 /* 
  * mm_init - initialize the malloc package.
  */
 int mm_init(void)
 {
+    mem_init();
+    begin = (char*) mem_heap_lo();
+    end = (char*) mem_heap_hi();
     return 0;
 }
 
